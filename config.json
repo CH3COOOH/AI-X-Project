@@ -1,0 +1,6 @@
+{
+"api": "http://localhost:11434/api/chat",
+"key": "ollama-xxx",
+"startwith": null,
+"tmp": "./tmp"
+}
