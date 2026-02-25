@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 azstd/
 __pycache__/
+*.bat
 *.py[codz]
 *$py.class
 

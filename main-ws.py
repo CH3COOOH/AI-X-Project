@@ -10,8 +10,9 @@ class ChatServer:
 		self.host = host
 		self.port = port
 		self._server = None
-		self.ai = handler.AIHandlerX(ollama.AI)
-		self.ai.online()
+		# self.ai = handler.AIHandlerX(ollama.AI)
+		# self.ai.online()
+		self.ai_group = handler.AIRoom(ollama.AI)
 
 	# ====== Lifecycle hooks (leave empty as requested) ======
 	async def on_server_start(self):
@@ -36,7 +37,7 @@ class ChatServer:
 			async for message in ws:
 				await self.on_message_received(ws, message)
 				# print(message)
-				resp = self.ai.query(json.loads(message)['payload'])
+				resp = self.ai_group.query(json.loads(message)['payload'])
 				for r in resp:
 					await ws.send(r)  # echo
 		except websockets.ConnectionClosed:
