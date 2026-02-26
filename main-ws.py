@@ -10,9 +10,11 @@ class ChatServer:
 		self.host = host
 		self.port = port
 		self._server = None
-		# self.ai = handler.AIHandlerX(ollama.AI)
-		# self.ai.online()
-		self.ai_group = handler.AIRoom(ollama.AI)
+		self.client_conn = {
+			"user": None,
+			"mgr": None
+		}
+		# self.ai_group = handler.AIRoom(ollama.AI)
 
 	# ====== Lifecycle hooks (leave empty as requested) ======
 	async def on_server_start(self):
@@ -36,10 +38,19 @@ class ChatServer:
 		try:
 			async for message in ws:
 				await self.on_message_received(ws, message)
-				# print(message)
-				resp = self.ai_group.query(json.loads(message)['payload'])
-				for r in resp:
-					await ws.send(r)  # echo
+				jmsg = json.loads(message)
+
+				if jmsg['flag'] == 'hello':
+					self.client_conn[jmsg['id']] = ws
+
+				elif jmsg['flag'] == 'chat':
+					if jmsg['recv'] == 'user':
+						message = jmsg['msg']
+					await self.client_conn[jmsg['recv']].send(message)
+					# resp = self.ai_group.query(jmsg['msg'])
+					# for r in resp:
+					# 	await ws.send(r)
+
 		except websockets.ConnectionClosed:
 			pass
 		finally:

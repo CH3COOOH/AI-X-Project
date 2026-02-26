@@ -11,8 +11,8 @@ class BaseAI:
 		self.ai.set_api(conf['api'])
 		self.setup = rw.read_t8(path_skill)
 
-	def jmsg(self, flag, msg):
-		return {'flag': flag, 'msg': msg}
+	def jmsg(self, recv, flag, msg):
+		return {'id': 'mgr', 'recv': recv, 'flag': flag, 'msg': msg}
 	
 	def online(self):
 		self.ai.query(self.setup + '\n---\n' + self.setup, role='system')
@@ -35,16 +35,16 @@ class AIMgr:
 	def query(self, q):
 		if q == '/flush':
 			self.ai.flush_context()
-			return self.ai.jmsg('text', 'Memory flushed!')
+			return self.ai.jmsg('user', 'chat', 'Memory flushed!')
 		elif q == '/dump':
-			return self.ai.jmsg('text', str(self.ai.dumps_context()))
+			return self.ai.jmsg('user', 'chat', str(self.ai.dumps_context()))
 
 		resp = self.ai.query(q)
 		if resp[:4] != '000+':
-			return self.ai.jmsg('text', resp)
+			return self.ai.jmsg('user', 'chat', resp)
 		elif resp[:4] == '000+':
 			usr_req = resp[4:]
-			return self.ai.jmsg('task', usr_req)
+			return self.ai.jmsg('user', 'chat', usr_req)
 
 
 class AIRoom:

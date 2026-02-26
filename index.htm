@@ -109,12 +109,23 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
+    function form_msg(flag, msg) {
+      return {
+        "id": "user",
+        "recv": "mgr",
+        "flag": flag,
+        "msg": msg
+      };
+    }
+
     function connect() {
       ws = new WebSocket(WS_URL);
 
       ws.addEventListener("open", () => {
         // No extra UI; just log to chat in a minimal way
         appendMessage("", "Connected.");
+        const msg_hello = form_msg("hello", "Client Version: 0.0.1");
+        ws.send(JSON.stringify(msg_hello));
       });
 
       ws.addEventListener("message", (event) => {
@@ -138,7 +149,8 @@
       const value = inputEl.value;
       if (!value.trim()) return;
 
-      const payload = { type: 0, payload: value }; // NOTE: 'paylad' as required
+      // const payload = { type: 0, payload: value }; // NOTE: 'paylad' as required
+      const payload = form_msg("chat", value);
 
       // Show immediately in chat
       appendMessage("You: ", value);
