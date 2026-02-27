@@ -109,10 +109,10 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function form_msg(flag, msg) {
+    function form_msg(recv, flag, msg) {
       return {
         "id": "user",
-        "recv": "mgr",
+        "recv": recv,
         "flag": flag,
         "msg": msg
       };
@@ -124,7 +124,7 @@
       ws.addEventListener("open", () => {
         // No extra UI; just log to chat in a minimal way
         appendMessage("", "Connected.");
-        const msg_hello = form_msg("hello", "Client Version: 0.0.1");
+        const msg_hello = form_msg("room", "hello", "Client Version: 0.0.1");
         ws.send(JSON.stringify(msg_hello));
       });
 
@@ -150,7 +150,7 @@
       if (!value.trim()) return;
 
       // const payload = { type: 0, payload: value }; // NOTE: 'paylad' as required
-      const payload = form_msg("chat", value);
+      const payload = form_msg("mgr", "chat", value);
 
       // Show immediately in chat
       appendMessage("You: ", value);

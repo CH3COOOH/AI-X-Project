@@ -5,14 +5,15 @@ import websockets
 import handler
 import ailib.ollama as ollama
 
-class ChatServer:
+class Gateway:
 	def __init__(self, host="localhost", port=9000):
 		self.host = host
 		self.port = port
 		self._server = None
 		self.client_conn = {
 			"user": None,
-			"mgr": None
+			"mgr": None,
+			"worker": None
 		}
 		# self.ai_group = handler.AIRoom(ollama.AI)
 
@@ -46,10 +47,15 @@ class ChatServer:
 				elif jmsg['flag'] == 'chat':
 					if jmsg['recv'] == 'user':
 						message = jmsg['msg']
-					await self.client_conn[jmsg['recv']].send(message)
-					# resp = self.ai_group.query(jmsg['msg'])
-					# for r in resp:
-					# 	await ws.send(r)
+						await self.client_conn[jmsg['recv']].send(message)
+					else:
+						if self.client_conn[jmsg['recv']] == None:
+							await self.client_conn['user'].send(f"** [{jmsg['recv']}] is not online...")
+						else:
+							await self.client_conn[jmsg['recv']].send(message)
+							## CC to user
+							if jmsg['id'] != 'user':
+								await self.client_conn['user'].send(message)
 
 		except websockets.ConnectionClosed:
 			pass
@@ -79,7 +85,7 @@ class ChatServer:
 
 
 async def main():
-	server = ChatServer("localhost", 9000)
+	server = Gateway("localhost", 9000)
 	await server.run_forever()
 
 if __name__ == "__main__":

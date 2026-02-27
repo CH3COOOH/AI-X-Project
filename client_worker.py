@@ -4,14 +4,21 @@ import websockets
 
 import handler
 import ailib.ollama as ollama
+import azstd.file.rw as rw
 
-class ChatClient:
+class WorkerClient:
 	def __init__(self, uri="ws://localhost:9000"):
 		self.uri = uri
-		self.ai = handler.AIMgr(ollama.AI, 'skills/mgr.md')
+		self.id = 'worker'
+		self.ai = handler.AIMgr(ollama.AI, rw.read_t8('skills/worker.md'))
 
 	def __form_msg(self, recv, flag, msg):
-		return {'id': 'mgr', 'recv': recv, 'flag': flag, 'msg': msg}
+		return {
+			'id': self.id,
+			'recv': recv,
+			'flag': flag,
+			'msg': msg
+		}
 
 	async def on_message_received(self, msg, ws):
 		print(msg)
@@ -30,7 +37,7 @@ class ChatClient:
 
 if __name__ == "__main__":
 	try:
-		client = ChatClient()
+		client = WorkerClient()
 		asyncio.run(client.start())
 	except KeyboardInterrupt:
 		pass
