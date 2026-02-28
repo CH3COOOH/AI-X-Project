@@ -11,8 +11,8 @@ class BaseAI:
 		self.ai.set_api(conf['api'])
 		self.setup = setup
 
-	def jmsg(self, recv, flag, msg):
-		return {'id': 'mgr', 'recv': recv, 'flag': flag, 'msg': msg}
+	def jmsg(self, id, recv, flag, msg):
+		return {'id': id, 'recv': recv, 'flag': flag, 'msg': msg}
 	
 	def online(self):
 		self.ai.query(self.setup + '\n---\n' + self.setup, role='system')
@@ -33,21 +33,23 @@ class AIMgr:
 		self.isOnline = False
 
 	def query(self, q):
+		## q = {id, recv, flag, msg}
 		if self.isOnline == False:
 			self.ai.online()
-			self.isOnline = True	
-		if q == '/flush':
-			self.ai.flush_context()
-			return self.ai.jmsg('user', 'chat', 'Memory flushed!')
-		elif q == '/dump':
-			return self.ai.jmsg('user', 'chat', str(self.ai.dumps_context()))
+			self.isOnline = True
+		if q['id'] == 'user':
+			if q['msg'] == '/flush':
+				self.ai.flush_context()
+				return self.ai.jmsg('mgr', 'user', 'chat', 'Memory flushed!')
+			elif q['msg'] == '/dump':
+				return self.ai.jmsg('mgr', 'user', 'chat', str(self.ai.dumps_context()))
 
-		resp = self.ai.query(q)
-		if resp[:4] != '000+':
-			return self.ai.jmsg('user', 'chat', resp)
-		elif resp[:4] == '000+':
-			usr_req = resp[4:]
-			return self.ai.jmsg('worker', 'reqest', usr_req)
+			resp = self.ai.query(q['msg'])
+			if resp[:4] != '000+':
+				return self.ai.jmsg('mgr', 'user', 'chat', resp)
+			else:
+				usr_req = resp[4:]
+				return self.ai.jmsg('mgr', 'worker', 'request', usr_req)
 
 
 class AIWorker:
@@ -57,13 +59,15 @@ class AIWorker:
 		self.zasm = zasm.Interpreter()
 
 	def query(self, q):
+		## q = {id, recv, flag, msg}
 		if self.isOnline == False:
 			self.ai.online()
 			self.isOnline = True
 
-		resp = self.ai.query(q)
+		q_msg = q['msg']
+		resp = self.ai.query(q_msg)
 		if resp[:5] == '9999 ':
-			return self.ai.jmsg('mgr', 'info', resp)
+			return self.ai.jmsg('worker', 'user', 'info', resp)
 		else:
 			print(resp)
-			
+			return self.ai.jmsg('worker', 'user', 'exec', resp)

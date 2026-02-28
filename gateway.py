@@ -44,7 +44,7 @@ class Gateway:
 				if jmsg['flag'] == 'hello':
 					self.client_conn[jmsg['id']] = ws
 
-				elif jmsg['flag'] == 'chat':
+				else:
 					if jmsg['recv'] == 'user':
 						message = jmsg['msg']
 						await self.client_conn[jmsg['recv']].send(message)

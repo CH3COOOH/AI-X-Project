@@ -23,9 +23,8 @@ class MgrClient:
 	async def on_message_received(self, msg, ws):
 		print(msg)
 		jmsg = json.loads(msg)
-		if jmsg['flag'] == 'chat':
-			resp = self.ai.query(jmsg['msg'])
-			await ws.send(json.dumps(resp, ensure_ascii=False))
+		resp = self.ai.query(json.loads(msg))
+		await ws.send(json.dumps(resp, ensure_ascii=False))
 
 	async def start(self):
 		async with websockets.connect(self.uri) as ws:

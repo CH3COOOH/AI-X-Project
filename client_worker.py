@@ -1,6 +1,7 @@
 import json
 import asyncio
 import websockets
+import re
 
 import handler
 import ailib.ollama as ollama
@@ -10,7 +11,9 @@ class WorkerClient:
 	def __init__(self, uri="ws://localhost:9000"):
 		self.uri = uri
 		self.id = 'worker'
-		self.ai = handler.AIMgr(ollama.AI, rw.read_t8('skills/worker.md'))
+		zasmdoc = rw.read_t8('skills/zasm.md')
+		skill_worker = rw.read_t8('skills/worker.md').replace('{{ zasm_doc }}', zasmdoc)
+		self.ai = handler.AIWorker(ollama.AI, skill_worker)
 
 	def __form_msg(self, recv, flag, msg):
 		return {
@@ -22,14 +25,12 @@ class WorkerClient:
 
 	async def on_message_received(self, msg, ws):
 		print(msg)
-		jmsg = json.loads(msg)
-		if jmsg['flag'] == 'chat':
-			resp = self.ai.query(jmsg['msg'])
-			await ws.send(json.dumps(resp, ensure_ascii=False))
+		resp = self.ai.query(json.loads(msg))
+		await ws.send(json.dumps(resp, ensure_ascii=False))
 
 	async def start(self):
 		async with websockets.connect(self.uri) as ws:
-			await ws.send(json.dumps(self.__form_msg('center', 'hello', 'MGR Online.')))
+			await ws.send(json.dumps(self.__form_msg('center', 'hello', 'WORKER Online.')))
 			while True:
 				msg = await ws.recv()
 				await self.on_message_received(msg, ws)
